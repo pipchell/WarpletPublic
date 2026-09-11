@@ -1,0 +1,13 @@
+{
+  "name": "warplet-self-hosted",
+  "version": "1.0.0",
+  "description": "Self-hosted personal link shortener — no dependencies, runs on plain Node.js.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

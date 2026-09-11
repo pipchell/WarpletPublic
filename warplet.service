@@ -1,0 +1,25 @@
+[Unit]
+Description=Warplet link shortener
+After=network.target
+
+[Service]
+Type=simple
+# Adjust this path if you clone/copy the project somewhere else:
+WorkingDirectory=/home/pi/warplet
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+
+# --- Configuration ---
+# Replace with a long random string. You can generate one with:
+#   openssl rand -hex 32
+Environment=ACCESS_TOKEN=replace-with-a-long-random-string
+Environment=PORT=8787
+Environment=DATA_FILE=/home/pi/warplet/data/links.json
+
+# Optional — only needed for multiple-domain support. Comma-separated,
+# no spaces. Leave commented out for normal single-domain use.
+# Environment=DOMAINS=go.example.com,short.example.org
+
+[Install]
+WantedBy=multi-user.target
