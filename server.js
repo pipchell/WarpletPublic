@@ -962,6 +962,33 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { error: 'Link not found' }, 404);
       }
 
+      // A custom code typed in the edit form renames the link: same
+      // validation as creating one, and a 409 if it collides with a
+      // *different* existing link (renaming to your own current code is a
+      // no-op, not a conflict).
+      let newCode = code;
+      const requestedCode = (body.code || '').trim();
+
+      if (requestedCode && requestedCode !== code) {
+        if (!/^[a-zA-Z0-9_-]{1,32}$/.test(requestedCode)) {
+          return sendJson(
+            res,
+            { error: 'Custom code must be alphanumeric (- and _ allowed)' },
+            400
+          );
+        }
+
+        if (await store.get(requestedCode)) {
+          return sendJson(
+            res,
+            { error: 'That code is already taken' },
+            409
+          );
+        }
+
+        newCode = requestedCode;
+      }
+
       let targetUrl = body.url && body.url.trim();
 
       if (!targetUrl) {
@@ -1023,7 +1050,7 @@ const server = http.createServer(async (req, res) => {
         domain = candidate;
       }
 
-      await store.put(code, {
+      await store.put(newCode, {
         ...existing,
         url: targetUrl,
         tags,
@@ -1032,8 +1059,12 @@ const server = http.createServer(async (req, res) => {
         password
       });
 
+      if (newCode !== code) {
+        await store.delete(code);
+      }
+
       return sendJson(res, {
-        code,
+        code: newCode,
         url: targetUrl,
         domain
       });
