@@ -706,11 +706,25 @@ const server = http.createServer(async (req, res) => {
     const { pathname, searchParams } =
       new URL(req.url, 'http://localhost');
 
-    if ((pathname === '/favicon.ico' || pathname === '/favicon.png') &&
+    // Serve the brand images referenced by BRAND.logo / BRAND.wordmark,
+    // plus the favicon (always favicon.png regardless of what those two
+    // point at). All three are plain files in the project root — rename
+    // BRAND.logo/wordmark to serve different files, or replace the files
+    // in place to change the images without touching this route.
+    const STATIC_IMAGE_PATHS = new Set(
+      [BRAND.logo, BRAND.wordmark, '/favicon.ico', '/favicon.png'].filter(Boolean)
+    );
+
+    if (STATIC_IMAGE_PATHS.has(pathname) &&
         (req.method === 'GET' || req.method === 'HEAD')) {
+      const filename =
+        (pathname === '/favicon.ico' || pathname === '/favicon.png')
+          ? 'favicon.png'
+          : pathname.replace(/^\//, '');
+
       try {
         const image = await readFile(
-          new URL('./favicon.png', import.meta.url)
+          new URL('./' + filename, import.meta.url)
         );
 
         res.writeHead(200, {
@@ -721,7 +735,7 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'HEAD') return res.end();
         return res.end(image);
       } catch {
-        return sendJson(res, { error: 'Favicon not found' }, 404);
+        return sendJson(res, { error: 'Image not found' }, 404);
       }
     }
 
