@@ -1,4 +1,4 @@
-# Warplet — Self-Hosted Link Shortener
+# Warplet - Self-Hosted Link Shortener
 
 A branded, feature-rich personal link shortener that runs entirely on your
 own hardware — a Raspberry Pi, a home server, a NAS, an old laptop, whatever
