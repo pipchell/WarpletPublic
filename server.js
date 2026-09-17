@@ -534,15 +534,29 @@ const HTML_PAGE =
   '"<button class=\\"danger\\" data-action=\\"delete\\">Delete</button>" +' +
   '"</div></details></td>";' +
   'var menu = tr.querySelector(".action-menu");' +
-  'menu.querySelector("[data-action=copy]").onclick = function(){copyLink(short);};' +
-  'menu.querySelector("[data-action=qr]").onclick = function(){showQr(short);};' +
-  'menu.querySelector("[data-action=edit]").onclick = function(){editLink(l.code);};' +
-  'menu.querySelector("[data-action=stats]").onclick = function(){showStats(l.code);};' +
-  'menu.querySelector("[data-action=delete]").onclick = function(){deleteLink(l.code);};' +
+  'menu.querySelector("[data-action=copy]").onclick = function(){copyLink(short);menu.removeAttribute("open");};' +
+  'menu.querySelector("[data-action=qr]").onclick = function(){showQr(short);menu.removeAttribute("open");};' +
+  'menu.querySelector("[data-action=edit]").onclick = function(){editLink(l.code);menu.removeAttribute("open");};' +
+  'menu.querySelector("[data-action=stats]").onclick = function(){showStats(l.code);menu.removeAttribute("open");};' +
+  'menu.querySelector("[data-action=delete]").onclick = function(){deleteLink(l.code);menu.removeAttribute("open");};' +
   'rows.appendChild(tr);' +
   '});' +
   '}' +
-  'function copyLink(short){ navigator.clipboard.writeText(short); flash("Copied " + short); }' +
+  'function copyLink(short){' +
+  'function ok(){ flash("Copied " + short); }' +
+  'function legacyCopy(){' +
+  'try{' +
+  'var ta=document.createElement("textarea");ta.value=short;ta.setAttribute("readonly","");' +
+  'ta.style.position="absolute";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();' +
+  'var success=document.execCommand("copy");document.body.removeChild(ta);' +
+  'if(success) ok(); else flash("Couldn\\u2019t copy \\u2014 link: " + short);' +
+  '}catch(e){ flash("Couldn\\u2019t copy \\u2014 link: " + short); }' +
+  '}' +
+  '/* navigator.clipboard needs a secure context (HTTPS or localhost) and is simply unavailable over plain http://<lan-ip>, which is how most people reach this dashboard \\u2014 fall back to the older execCommand approach. */' +
+  'if(navigator.clipboard && window.isSecureContext){' +
+  'navigator.clipboard.writeText(short).then(ok, legacyCopy);' +
+  '}else{ legacyCopy(); }' +
+  '}' +
   'function flash(text){ var m = document.getElementById("msg"); m.textContent = text; setTimeout(function(){ if(m.textContent===text) m.textContent=""; }, 2500); }' +
 
   'function saveLink(){' +
@@ -632,6 +646,12 @@ const HTML_PAGE =
   '}).join("");' +
   '}' +
 
+  '/* "XX" is what the server records when no CF-IPCountry header is present (i.e. not behind a Cloudflare Tunnel) \\u2014 shown as "Unknown" here so it reads as expected rather than as a bug. */' +
+  'function friendlyCountries(obj){' +
+  'var out={};' +
+  'Object.keys(obj).forEach(function(k){ out[k==="XX"?"Unknown":k] = obj[k]; });' +
+  'return out;' +
+  '}' +
   'function miniList(obj){' +
   'var entries = Object.keys(obj).map(function(k){ return [k, obj[k]]; }).sort(function(a,b){return b[1]-a[1];}).slice(0,5);' +
   'if(entries.length === 0) return "<div style=\\"color:var(--muted);font-size:0.82rem;\\">No data yet</div>";' +
@@ -647,7 +667,7 @@ const HTML_PAGE =
   '"<div style=\\"color:var(--muted);font-size:0.8rem;margin-bottom:4px;\\">Last 14 days</div>" +' +
   '"<div class=\\"bars\\">" + bars(s.byDay || {}) + "</div>" +' +
   '"<h4 style=\\"margin-bottom:2px;\\">Top referrers</h4>" + miniList(s.referrers || {}) +' +
-  '"<h4 style=\\"margin-bottom:2px;\\">Top countries</h4>" + miniList(s.countries || {}) +' +
+  '"<h4 style=\\"margin-bottom:2px;\\">Top countries</h4>" + miniList(friendlyCountries(s.countries || {})) +' +
   '"<h4 style=\\"margin-bottom:2px;\\">Devices</h4>" +' +
   '"<div class=\\"miniList\\"><div><span>Mobile</span><span>"+devices.mobile+"</span></div>" +' +
   '"<div><span>Desktop</span><span>"+devices.desktop+"</span></div>" +' +
