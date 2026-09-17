@@ -1,0 +1,10 @@
+# Your live link database — personal data, never commit this
+data/
+
+# Local install artifacts
+node_modules/
+*.log
+.DS_Store
+
+# Backups produced by the maintenance commands in the README
+warplet-backup-*.json

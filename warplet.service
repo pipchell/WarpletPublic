@@ -13,7 +13,7 @@ RestartSec=5
 # --- Configuration ---
 # Replace with a long random string. You can generate one with:
 #   openssl rand -hex 32
-Environment=ACCESS_TOKEN=replace-with-a-long-random-string
+Environment=ACCESS_TOKEN=REPLACE_WITH_YOUR_OWN_LONG_RANDOM_TOKEN
 Environment=PORT=8787
 Environment=DATA_FILE=/home/pi/warplet/data/links.json
 
