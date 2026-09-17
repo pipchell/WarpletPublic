@@ -92,6 +92,25 @@ All settings are environment variables, set on the command line or in `warplet.s
 
 Useful service commands: `sudo systemctl status warplet`, `sudo systemctl restart warplet`, `journalctl -u warplet -f` (live logs).
 
+### Generating an access token
+
+`ACCESS_TOKEN` is your dashboard password — it gates creating, listing, editing, and deleting links (not visiting them; redirects are always public, that's the point of a short link). The [quick installer](#quick-install-recommended) generates one for you automatically and prints it at the end, so you only need to do this yourself if you're installing by hand or rotating an existing token.
+
+Generate a long, random one:
+
+```bash
+openssl rand -hex 32
+```
+
+That prints a 64-character string — copy the whole thing. Where it goes depends on how you're running Warplet:
+
+- **As a systemd service**: put it in `warplet.service` as `Environment=ACCESS_TOKEN=<the-string>`, then apply it with `sudo systemctl daemon-reload && sudo systemctl restart warplet`.
+- **Running directly** (testing, not as a service): `ACCESS_TOKEN=<the-string> node server.js`.
+
+Save the token itself somewhere durable — a password manager, not a note file next to the project — since it's also what you'll type into the dashboard's login screen on every new browser/device. **Never paste a real token into `warplet.service` and commit that file to git**: the copy in this repo is a placeholder for exactly that reason.
+
+To rotate a token later (e.g. if you suspect it leaked), generate a new one the same way, update it wherever it's currently set, restart the service, and the old token stops working immediately — there's no separate revoke step needed since the server only ever compares against whatever `ACCESS_TOKEN` currently holds.
+
 ## Branding
 
 Edit the `BRAND` object near the top of `server.js`:
