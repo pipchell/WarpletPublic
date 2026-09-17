@@ -191,11 +191,12 @@ function recordHit(entry, req) {
 // Branded minimal pages
 // ------------------------------------------------------------
 
-function minimalPage(heading, subtext, bodyExtra) {
+function minimalPage(heading, subtext, bodyExtra, cardVariant) {
+  const variantClass = cardVariant ? ' ' + cardVariant : '';
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<title>' + BRAND.name + '</title>' +
-    '<link rel="icon" href="/favicon.ico?v=5">' +
+    '<link rel="icon" href="/favicon.ico?v=6">' +
     '<style>' +
     'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fbfbfb;color:#3d3d3d;padding:20px;}' +
     '.card{max-width:360px;width:100%;padding:32px 28px;border-radius:10px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08);border:1px solid #e9e9e9;text-align:center;}' +
@@ -207,7 +208,14 @@ function minimalPage(heading, subtext, bodyExtra) {
     'button:hover{filter:brightness(1.05);}' +
     '.brand{font-weight:600;color:#3d3d3d;margin-bottom:18px;}' +
     '#err{color:#d33;font-size:0.85rem;min-height:1.1em;margin-top:8px;}' +
-    '</style></head><body><div class="card">' +
+    '.card.locked{background:' + BRAND.accent + ';border-color:' + BRAND.accent + ';color:#fff;}' +
+    '.card.locked h1,.card.locked .brand{color:#fff;}' +
+    '.card.locked p{color:rgba(255,255,255,.82);}' +
+    '.card.locked input{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4);color:#fff;}' +
+    '.card.locked input::placeholder{color:rgba(255,255,255,.65);}' +
+    '.card.locked button{background:#fff;color:' + BRAND.accent + ';}' +
+    '.card.locked #err{color:#ffd6d6;}' +
+    '</style></head><body><div class="card' + variantClass + '">' +
     '<img class="brand-logo" src="' + BRAND.wordmark + '" alt="' + BRAND.name + '">' +
     '<div class="brand">' + BRAND.name + '</div>' +
     '<h1>' + heading + '</h1><p>' + subtext + '</p>' +
@@ -235,7 +243,8 @@ function passwordPage(code) {
   return minimalPage(
     'This link is protected',
     'Enter the password to continue.',
-    extra
+    extra,
+    'locked'
   );
 }
 
@@ -260,7 +269,7 @@ const HTML_PAGE =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
   '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
   '<title>' + BRAND.name + '</title>' +
-  '<link rel="icon" href="/favicon.ico?v=5">' +
+  '<link rel="icon" href="/favicon.ico?v=6">' +
   '<style>' +
   ':root{--accent:' + BRAND.accent + ';--bg:#fbfbfb;--card:#fff;--card2:#f7f7f7;--text:#3d3d3d;--muted:#828282;--border:#e4e4e4;}' +
   '*{box-sizing:border-box;}' +
