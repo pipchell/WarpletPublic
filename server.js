@@ -191,8 +191,9 @@ function recordHit(entry, req) {
 // Branded minimal pages
 // ------------------------------------------------------------
 
-function minimalPage(heading, subtext, bodyExtra, cardVariant) {
+function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc) {
   const variantClass = cardVariant ? ' ' + cardVariant : '';
+  const logo = logoSrc || BRAND.wordmark;
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<title>' + BRAND.name + '</title>' +
@@ -215,8 +216,9 @@ function minimalPage(heading, subtext, bodyExtra, cardVariant) {
     '.card.locked input::placeholder{color:rgba(255,255,255,.65);}' +
     '.card.locked button{background:#fff;color:' + BRAND.accent + ';}' +
     '.card.locked #err{color:#ffd6d6;}' +
+    '.card.locked .brand-logo{filter:brightness(0) invert(1);}' +
     '</style></head><body><div class="card' + variantClass + '">' +
-    '<img class="brand-logo" src="' + BRAND.wordmark + '" alt="' + BRAND.name + '">' +
+    '<img class="brand-logo" src="' + logo + '" alt="' + BRAND.name + '">' +
     '<div class="brand">' + BRAND.name + '</div>' +
     '<h1>' + heading + '</h1><p>' + subtext + '</p>' +
     (bodyExtra || '') +
@@ -244,7 +246,8 @@ function passwordPage(code) {
     'This link is protected',
     'Enter the password to continue.',
     extra,
-    'locked'
+    'locked',
+    '/favicon.png'
   );
 }
 
