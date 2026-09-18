@@ -302,6 +302,14 @@ const HTML_PAGE =
   '.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px;box-shadow:0 2px 10px rgba(0,0,0,.03);}' +
   'input,select,button,textarea{font-size:0.95rem;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);min-width:0;}' +
   'input,select,textarea{width:100%;}' +
+  /* Browsers render placeholder text (and an empty datetime-local's
+     "mm/dd/yyyy" segments) in their own default gray, which does not
+     match our --muted token - pin it explicitly so every hint/placeholder
+     across the form (including the iOS "set expiry" custom display
+     below) reads as exactly the same shade. Firefox also dims placeholder
+     text further via a default opacity, so that is reset to fully solid
+     here too. */
+  'input::placeholder{color:var(--muted);opacity:1;}' +
   '.dt-wrap{position:relative;}' +
   /* iOS Safari renders an empty datetime-local input as a totally blank
      box (no placeholder-like text, no visible hint it is even a date
@@ -368,7 +376,6 @@ const HTML_PAGE =
   '.action-menu summary::-webkit-details-marker{display:none;}' +
   '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;transition:transform .12s ease-out;}' +
   '.action-menu[open] summary::after{transform:rotate(180deg);}' +
-  '.action-menu[open] summary{border-radius:10px 10px 0 0;}' +
   '.action-menu[open]{z-index:50;}' +
   '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.16);padding:6px;min-width:140px;}' +
   '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;transition:opacity .14s ease-out,transform .14s ease-out;}' +
