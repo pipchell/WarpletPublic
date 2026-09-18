@@ -386,15 +386,19 @@ const HTML_PAGE =
   '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;}' +
   '.action-menu[open] summary::after{transform:rotate(180deg);}' +
   '.action-menu[open]{z-index:50;}' +
-  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.16);padding:6px;min-width:140px;}' +
+  /* Styled like every other floating panel on the site: same card
+     background/border/radius as .card and .modal, and the same "popped
+     up" shadow the login/gate card uses (the only real elevation shadow
+     already established elsewhere), rather than a one-off heavier one.
+     Each action is a small stack of the site's own button.secondary
+     chips, and Delete is a real button.danger (solid red, white text) -
+     the exact same styles used everywhere else on the dashboard, just
+     laid out vertically - so hover states come for free from the
+     site-wide button:hover rule instead of a separate override here. */
+  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:8px;min-width:150px;display:flex;flex-direction:column;gap:6px;}' +
   '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;}' +
-  '.action-menu-items button{display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 2px 0;padding:8px 10px;font-size:0.8rem;border-radius:8px;background:transparent;border:none;color:var(--text);font-weight:500;}' +
-  '.action-menu-items button svg{flex:none;opacity:0.7;}' +
-  '.action-menu-items button:last-child{margin-bottom:0;}' +
-  '.action-menu-items button:hover{background:var(--card2);}' +
-  '.action-menu-items button:hover svg{opacity:1;}' +
-  '.action-menu-items button.danger{color:#d33;margin-top:6px;padding-top:10px;border-top:1px solid var(--border);border-radius:0 0 8px 8px;}' +
-  '.action-menu-items button.danger:hover{background:#fdeaea;}' +
+  '.action-menu-items button{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;text-align:left;padding:7px 10px;font-size:0.78rem;}' +
+  '.action-menu-items button svg{flex:none;}' +
 
   '#msg{font-size:0.85rem;color:var(--muted);overflow-wrap:anywhere;}#msg:not(:empty){margin-top:8px;}' +
   '.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:10;}' +
