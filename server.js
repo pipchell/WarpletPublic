@@ -302,7 +302,6 @@ const HTML_PAGE =
   '.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px;box-shadow:0 2px 10px rgba(0,0,0,.03);}' +
   'input,select,button,textarea{font-size:0.95rem;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);min-width:0;}' +
   'input,select,textarea{width:100%;}' +
-  '#domain,#expiresAt{color:var(--muted);}' +
   '.dt-wrap{position:relative;}' +
   /* iOS Safari renders an empty datetime-local input as a totally blank
      box (no placeholder-like text, no visible hint it is even a date
@@ -336,7 +335,6 @@ const HTML_PAGE =
   'button{cursor:pointer;background:var(--accent);color:white;border:none;font-weight:600;}' +
   'button:hover{filter:brightness(1.05);}' +
   'a{color:var(--accent);}' +
-  'input[type="datetime-local"],select{color:var(--muted);}' +
   'button.secondary{background:var(--card2);color:var(--text);border:1px solid var(--border);font-weight:500;}' +
   'button.danger{background:#d33;}' +
   /* align-items:start (not the grid default of "stretch") - otherwise the
@@ -372,12 +370,14 @@ const HTML_PAGE =
   '.action-menu[open] summary::after{transform:rotate(180deg);}' +
   '.action-menu[open] summary{border-radius:10px 10px 0 0;}' +
   '.action-menu[open]{z-index:50;}' +
-  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.14);padding:4px;min-width:110px;}' +
-  '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;opacity:0;transform:translateY(-4px);transition:opacity .1s ease-out,transform .1s ease-out;}' +
-  '.action-menu-items button{display:block;width:100%;box-sizing:border-box;text-align:left;margin:0 0 2px 0;padding:7px 9px;font-size:0.78rem;border-radius:7px;background:transparent;border:none;color:var(--text);font-weight:500;}' +
+  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.16);padding:6px;min-width:140px;}' +
+  '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;transition:opacity .14s ease-out,transform .14s ease-out;}' +
+  '.action-menu-items button{display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 2px 0;padding:8px 10px;font-size:0.8rem;border-radius:8px;background:transparent;border:none;color:var(--text);font-weight:500;}' +
+  '.action-menu-items button svg{flex:none;opacity:0.7;}' +
   '.action-menu-items button:last-child{margin-bottom:0;}' +
   '.action-menu-items button:hover{background:var(--card2);}' +
-  '.action-menu-items button.danger{color:#d33;margin-top:5px;padding-top:9px;border-top:1px solid var(--border);border-radius:0 0 7px 7px;}' +
+  '.action-menu-items button:hover svg{opacity:1;}' +
+  '.action-menu-items button.danger{color:#d33;margin-top:6px;padding-top:10px;border-top:1px solid var(--border);border-radius:0 0 8px 8px;}' +
   '.action-menu-items button.danger:hover{background:#fdeaea;}' +
 
   '#msg{font-size:0.85rem;color:var(--muted);overflow-wrap:anywhere;}#msg:not(:empty){margin-top:8px;}' +
@@ -585,7 +585,7 @@ const HTML_PAGE =
    other row's menu first (closing them fires their own toggle handler,
    which resets their inline positioning styles above). */
 'document.querySelectorAll(".action-menu[open]").forEach(function(other){if(other!==d)other.removeAttribute("open");});' +
-'m.classList.add("action-menu-fixed");positionActionMenu(d);requestAnimationFrame(function(){m.style.opacity="1";m.style.transform="translateY(0)";});' +
+'m.classList.add("action-menu-fixed");positionActionMenu(d);requestAnimationFrame(function(){m.style.opacity="1";m.style.transform="translateY(0) scale(1)";});' +
 '},true);' +
 'window.addEventListener("resize",function(){document.querySelectorAll(".action-menu[open]").forEach(positionActionMenu);});' +
 'window.addEventListener("scroll",function(){document.querySelectorAll(".action-menu[open]").forEach(positionActionMenu);},true);document.addEventListener("click",function(e){if(e.target.closest(".action-menu"))return;document.querySelectorAll(".action-menu[open]").forEach(function(d){d.removeAttribute("open");});});' +
@@ -615,11 +615,11 @@ const HTML_PAGE =
   '"<td>" + statusHtml + "</td>" +' +
   '"<td>" + (l.clicks||0) + "</td>" +' +
   '"<td class=\\"actions\\"><details class=\\"action-menu\\"><summary>Actions</summary><div class=\\"action-menu-items\\">" +' +
-  '"<button class=\\"secondary\\" data-action=\\"copy\\">Copy</button>" +' +
-  '"<button class=\\"secondary\\" data-action=\\"qr\\">QR</button>" +' +
-  '"<button class=\\"secondary\\" data-action=\\"edit\\">Edit</button>" +' +
-  '"<button class=\\"secondary\\" data-action=\\"stats\\">Stats</button>" +' +
-  '"<button class=\\"danger\\" data-action=\\"delete\\">Delete</button>" +' +
+  '"<button class=\\"secondary\\" data-action=\\"copy\\"><svg viewBox=\\"0 0 24 24\\" width=\\"14\\" height=\\"14\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><rect x=\\"9\\" y=\\"9\\" width=\\"13\\" height=\\"13\\" rx=\\"2\\" ry=\\"2\\"></rect><path d=\\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\\"></path></svg><span>Copy</span></button>" +' +
+  '"<button class=\\"secondary\\" data-action=\\"qr\\"><svg viewBox=\\"0 0 24 24\\" width=\\"14\\" height=\\"14\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><rect x=\\"3\\" y=\\"3\\" width=\\"7\\" height=\\"7\\"></rect><rect x=\\"14\\" y=\\"3\\" width=\\"7\\" height=\\"7\\"></rect><rect x=\\"14\\" y=\\"14\\" width=\\"7\\" height=\\"7\\"></rect><rect x=\\"3\\" y=\\"14\\" width=\\"7\\" height=\\"7\\"></rect></svg><span>QR</span></button>" +' +
+  '"<button class=\\"secondary\\" data-action=\\"edit\\"><svg viewBox=\\"0 0 24 24\\" width=\\"14\\" height=\\"14\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><path d=\\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\\"></path><path d=\\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\\"></path></svg><span>Edit</span></button>" +' +
+  '"<button class=\\"secondary\\" data-action=\\"stats\\"><svg viewBox=\\"0 0 24 24\\" width=\\"14\\" height=\\"14\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><line x1=\\"18\\" y1=\\"20\\" x2=\\"18\\" y2=\\"10\\"></line><line x1=\\"12\\" y1=\\"20\\" x2=\\"12\\" y2=\\"4\\"></line><line x1=\\"6\\" y1=\\"20\\" x2=\\"6\\" y2=\\"14\\"></line></svg><span>Stats</span></button>" +' +
+  '"<button class=\\"danger\\" data-action=\\"delete\\"><svg viewBox=\\"0 0 24 24\\" width=\\"14\\" height=\\"14\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><polyline points=\\"3 6 5 6 21 6\\"></polyline><path d=\\"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6\\"></path><path d=\\"M10 11v6\\"></path><path d=\\"M14 11v6\\"></path><path d=\\"M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2\\"></path></svg><span>Delete</span></button>" +' +
   '"</div></details></td>";' +
   'var menu = tr.querySelector(".action-menu");' +
   'menu.querySelector("[data-action=copy]").onclick = function(){copyLink(short);menu.removeAttribute("open");};' +
