@@ -535,6 +535,13 @@ const HTML_PAGE =
   'var list = allLinks.slice().sort(function(a,b){return b.created - a.created;});' +
   'if(activeTag) list = list.filter(function(l){ return (l.tags||[]).indexOf(activeTag) !== -1; });' +
   'if(activeDomain) list = list.filter(function(l){ return l.domain === activeDomain; });' +
+  'if(list.length === 0){' +
+  'var emptyTr = document.createElement("tr");' +
+  'var emptyMsg = (activeTag || activeDomain) ? "No links match this filter." : "No links yet \\u2014 create one above.";' +
+  'emptyTr.innerHTML = "<td colspan=\\"5\\" style=\\"text-align:center;color:var(--muted);padding:28px 10px;\\">" + emptyMsg + "</td>";' +
+  'rows.appendChild(emptyTr);' +
+  'return;' +
+  '}' +
   'list.forEach(function(l){' +
   'var tr = document.createElement("tr");' +
   'var short = (l.domain ? "https://" + l.domain : location.origin) + "/" + l.code;' +
