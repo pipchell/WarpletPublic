@@ -303,6 +303,13 @@ const HTML_PAGE =
   'input,select,button,textarea{font-size:0.95rem;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);min-width:0;}' +
   'input,select,textarea{width:100%;}' +
   '#domain,#expiresAt{color:var(--muted);}' +
+  /* iOS gives datetime-local inputs their own larger intrinsic height that
+     ignores most author padding - this at least tightens it as much as
+     the platform allows, and lines the hint text up with where a real
+     placeholder would sit. */
+  '.dt-wrap{position:relative;}' +
+  'input[type="datetime-local"]{padding-top:8px;padding-bottom:8px;}' +
+  '.dt-hint{position:absolute;left:11px;top:0;bottom:0;display:flex;align-items:center;font-size:0.95rem;color:var(--muted);pointer-events:none;}' +
   'button{cursor:pointer;background:var(--accent);color:white;border:none;font-weight:600;}' +
   'button:hover{filter:brightness(1.05);}' +
   'a{color:var(--accent);}' +
@@ -383,10 +390,19 @@ const HTML_PAGE =
   '<details class="advanced"><summary>' + moreOptionsLabel + '</summary>' +
   '<div class="grid" style="margin-top:8px;">' +
   '<input type="text" id="tags" placeholder="tags, comma-separated">' +
-  /* datetime-local inputs can't show placeholder text in any browser, so
-     without a real label this field just looks like an empty box - easy
-     to miss entirely on a narrow mobile layout. */
-  '<div><label for="expiresAt" style="display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Expires (optional)</label><input type="datetime-local" id="expiresAt"></div>' +
+  /* datetime-local inputs can't show placeholder text in any browser, and
+     on iOS Safari an empty one renders as a plain blank box with no hint
+     text or icon at all (and a taller intrinsic height than other inputs,
+     which iOS enforces regardless of our CSS) - easy to mistake for
+     missing/broken. The label above already identifies it; this overlay
+     span adds a "tap to set a date" hint on top of the blank input itself
+     (pointer-events:none so taps pass straight through to the real
+     control), toggled off once a value is actually set. */
+  '<div><label for="expiresAt" style="display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Expires (optional)</label>' +
+  '<div class="dt-wrap">' +
+  '<input type="datetime-local" id="expiresAt" oninput="syncExpiresHint()">' +
+  '<span id="expiresAtHint" class="dt-hint">Tap to set a date</span>' +
+  '</div></div>' +
   '</div>' +
   domainSelectHtml +
   '<input type="text" id="password" placeholder="password (optional)" style="margin-top:8px;">' +
@@ -604,6 +620,13 @@ const HTML_PAGE =
   '}else{ legacyCopy(); }' +
   '}' +
   'function flash(text){ var m = document.getElementById("msg"); m.textContent = text; setTimeout(function(){ if(m.textContent===text) m.textContent=""; }, 2500); }' +
+  /* Setting .value from JS (editLink/clearForm) does not fire an "input"
+     event, so the hint has to be synced manually wherever the field's
+     value is set programmatically, not just via the input's own oninput. */
+  'function syncExpiresHint(){' +
+  'var el=document.getElementById("expiresAt"), hint=document.getElementById("expiresAtHint");' +
+  'if(el && hint) hint.style.display = el.value ? "none" : "flex";' +
+  '}' +
 
   'function saveLink(){' +
   'var url = document.getElementById("url").value.trim();' +
@@ -638,6 +661,7 @@ const HTML_PAGE =
   'document.getElementById("code").value=l.code;' +
   'document.getElementById("tags").value=(l.tags||[]).join(", ");' +
   'document.getElementById("expiresAt").value=l.expiresAt ? new Date(l.expiresAt-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : "";' +
+  'syncExpiresHint();' +
   'document.getElementById("password").value="";' +
   'document.getElementById("password").placeholder = l.hasPassword ? "new password (leave blank to keep current)" : "password (optional)";' +
   'document.getElementById("removePassword").checked=false;' +
@@ -656,6 +680,7 @@ const HTML_PAGE =
   'document.getElementById("code").value="";' +
   'document.getElementById("tags").value="";' +
   'document.getElementById("expiresAt").value="";' +
+  'syncExpiresHint();' +
   'document.getElementById("password").value="";' +
   'document.getElementById("password").placeholder="password (optional)";' +
   'document.getElementById("removePassword").checked=false;' +
