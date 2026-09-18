@@ -380,11 +380,17 @@ const HTML_PAGE =
   '.pill.expired{background:#fdeaea;color:#c33;}' +
   '.pill.locked{background:#fff4d8;color:#946d00;}' +
   '.actions button{padding:5px 8px;font-size:0.75rem;margin-right:4px;margin-bottom:4px;}' +
+  /* No animation anywhere on this menu, deliberately: no transition on
+     open/close, no fade-in, and the chevron no longer flips direction
+     (that was the last bit of movement left) - everything just appears
+     and disappears instantly. transition/animation:none is set
+     explicitly on the interactive pieces too, as a guard against any
+     future default a browser might add to <details>/<summary> on its
+     own. */
   '.action-menu{display:inline-block;position:relative;}' +
-  '.action-menu summary{list-style:none;cursor:pointer;background:var(--accent);color:white;border-radius:10px;padding:5px 9px 5px 11px;font-size:0.75rem;white-space:nowrap;display:flex;align-items:center;gap:5px;user-select:none;}' +
+  '.action-menu summary{list-style:none;cursor:pointer;background:var(--accent);color:white;border-radius:10px;padding:5px 9px 5px 11px;font-size:0.75rem;white-space:nowrap;display:flex;align-items:center;gap:5px;user-select:none;transition:none;animation:none;}' +
   '.action-menu summary::-webkit-details-marker{display:none;}' +
-  '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;}' +
-  '.action-menu[open] summary::after{transform:rotate(180deg);}' +
+  '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;transition:none;}' +
   '.action-menu[open]{z-index:50;}' +
   /* Styled like every other floating panel on the site: same card
      background/border/radius as .card and .modal, and the same "popped
@@ -395,7 +401,7 @@ const HTML_PAGE =
      the exact same styles used everywhere else on the dashboard, just
      laid out vertically - so hover states come for free from the
      site-wide button:hover rule instead of a separate override here. */
-  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:8px;min-width:150px;display:flex;flex-direction:column;gap:6px;}' +
+  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:8px;min-width:150px;display:flex;flex-direction:column;gap:6px;transition:none;animation:none;}' +
   '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;}' +
   '.action-menu-items button{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;text-align:left;padding:7px 10px;font-size:0.78rem;}' +
   '.action-menu-items button svg{flex:none;}' +
