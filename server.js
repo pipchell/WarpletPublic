@@ -197,7 +197,11 @@ function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc, hideBran
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<title>' + BRAND.name + '</title>' +
-    '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=8">' +
+    '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=9">' +
+    /* iOS Safari ignores favicon.ico for its own UI (tab switcher, "Add to
+       Home Screen") - it specifically looks for apple-touch-icon, a plain
+       (non-transparent) PNG, ideally 180x180. */
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1">' +
     '<style>' +
     'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fbfbfb;color:#3d3d3d;padding:20px;}' +
     '.card{max-width:360px;width:100%;padding:32px 28px;border-radius:10px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08);border:1px solid #e9e9e9;text-align:center;}' +
@@ -281,7 +285,8 @@ const HTML_PAGE =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
   '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
   '<title>' + BRAND.name + '</title>' +
-  '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=8">' +
+  '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=9">' +
+  '<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1">' +
   '<style>' +
   ':root{--accent:' + BRAND.accent + ';--bg:#fbfbfb;--card:#fff;--card2:#f7f7f7;--text:#3d3d3d;--muted:#828282;--border:#e4e4e4;}' +
   '*{box-sizing:border-box;}' +
@@ -781,7 +786,7 @@ const server = http.createServer(async (req, res) => {
     // different files, or replace the files in place to change the
     // images without touching this route.
     const STATIC_IMAGE_PATHS = new Set(
-      [BRAND.logo, BRAND.wordmark, '/favicon.ico', '/favicon.png'].filter(Boolean)
+      [BRAND.logo, BRAND.wordmark, '/favicon.ico', '/favicon.png', '/apple-touch-icon.png'].filter(Boolean)
     );
 
     if (STATIC_IMAGE_PATHS.has(pathname) &&
