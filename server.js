@@ -304,22 +304,30 @@ const HTML_PAGE =
   'input,select,textarea{width:100%;}' +
   '#domain,#expiresAt{color:var(--muted);}' +
   '.dt-wrap{position:relative;}' +
-  /* iOS enforces its own larger intrinsic height for a datetime-local
-     control's native chrome and mostly ignores author CSS on it directly
-     - so instead of fighting that, on iOS the real input is made fully
-     invisible and stretched to fill this wrapper (clipped by
-     overflow:hidden, so its oversized native rendering never affects
-     layout), while a plain styled div underneath shows the value using
-     exactly the same sizing as every other field. Taps still land on the
-     real input (it is on top, just invisible) and open the native
-     picker normally. Desktop/Android are untouched by any of this - the
-     "ios-datetime" class below is only ever added via JS on iOS, where
-     the native rendering is otherwise blank and oddly tall to begin with. */
-  '.dt-wrap.ios-datetime{overflow:hidden;border-radius:8px;}' +
-  '.dt-wrap.ios-datetime .dt-real{position:absolute;inset:0;width:100%;height:100%;opacity:0;padding:0;margin:0;border:none;}' +
+  /* Native datetime-local controls render inconsistently across browsers
+     (blank with no placeholder text when empty on iOS, oddly tall on
+     iOS, plain/unstyled everywhere else) - so on every platform the real
+     input is made fully invisible and stretched to fill this wrapper
+     (clipped by overflow:hidden, so any oversized native rendering never
+     affects layout), while a plain styled div underneath shows the value
+     using exactly the same sizing as every other field. The real input
+     stays on top (absolutely positioned) so taps land on it directly and
+     open the native picker normally - no click-passthrough trickery
+     needed; the display div's pointer-events:none is just a safety net.
+     This class is added unconditionally at load, on every device. The
+     wrapper's height is pinned explicitly (matching every other field's
+     own padding+border+line-height) rather than left to derive from the
+     display div's flex content, since an auto-height parent whose only
+     sizing signal comes from a flex child's content, alongside an
+     absolutely positioned percentage-height sibling, can report a stale
+     collapsed height in some browsers after unrelated style reads even
+     though nothing on screen actually changed - pinning it removes that
+     ambiguity entirely. */
+  '.dt-wrap.dt-custom{overflow:hidden;border-radius:8px;height:39px;}' +
+  '.dt-wrap.dt-custom .dt-real{position:absolute;inset:0;width:100%;height:100%;opacity:0;padding:0;margin:0;border:none;}' +
   '.dt-display{display:none;}' +
-  '.dt-wrap.ios-datetime .dt-display{display:flex;align-items:center;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:0.95rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}' +
-  '.dt-wrap.ios-datetime .dt-display.dt-empty{color:var(--muted);}' +
+  '.dt-wrap.dt-custom .dt-display{display:flex;align-items:center;height:100%;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:0.95rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-sizing:border-box;}' +
+  '.dt-wrap.dt-custom .dt-display.dt-empty{color:var(--muted);}' +
   'button{cursor:pointer;background:var(--accent);color:white;border:none;font-weight:600;}' +
   'button:hover{filter:brightness(1.05);}' +
   'a{color:var(--accent);}' +
@@ -412,10 +420,9 @@ const HTML_PAGE =
      styled div (#expiresAtDisplay) shows a hint or the chosen value
      instead, sized like every other field; a tap still lands on the real
      (invisible) input and opens the native picker as normal. */
-  '<div><label for="expiresAt" style="display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Expires (optional)</label>' +
-  '<div class="dt-wrap" id="expiresAtWrap">' +
+  '<div><div class="dt-wrap dt-custom" id="expiresAtWrap">' +
   '<input type="datetime-local" id="expiresAt" class="dt-real" oninput="syncExpiresDisplay()">' +
-  '<div id="expiresAtDisplay" class="dt-display dt-empty">Tap to set a date</div>' +
+  '<div id="expiresAtDisplay" class="dt-display dt-empty">Set expiry</div>' +
   '</div></div>' +
   '</div>' +
   domainSelectHtml +
@@ -634,19 +641,16 @@ const HTML_PAGE =
   '}else{ legacyCopy(); }' +
   '}' +
   'function flash(text){ var m = document.getElementById("msg"); m.textContent = text; setTimeout(function(){ if(m.textContent===text) m.textContent=""; }, 2500); }' +
-  /* Only iOS Safari renders datetime-local badly (blank when empty, and
-     an oddly tall native control) - desktop/Android already look fine
-     with the plain input, so all of this is gated behind isIOS and never
-     touches those. Setting .value from JS (editLink/clearForm) does not
-     fire an "input" event either, so the display has to be synced
-     manually wherever the field's value is set programmatically, not
-     just via the input's own oninput. */
-  'var isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);' +
-  'if(isIOS){ var eaw=document.getElementById("expiresAtWrap"); if(eaw) eaw.classList.add("ios-datetime"); }' +
+  /* The custom display (see .dt-custom above, baked directly into the
+     markup) is applied on every device, so the "Set expiry" hint and
+     formatted value show everywhere, not just on iOS. Setting .value
+     from JS (editLink/clearForm) does not fire an "input" event either,
+     so the display has to be synced manually wherever the field's value
+     is set programmatically, not just via the input's own oninput. */
   'function syncExpiresDisplay(){' +
   'var el=document.getElementById("expiresAt"), disp=document.getElementById("expiresAtDisplay");' +
   'if(!el || !disp) return;' +
-  'if(!el.value){ disp.textContent="Tap to set a date"; disp.classList.add("dt-empty"); return; }' +
+  'if(!el.value){ disp.textContent="Set expiry"; disp.classList.add("dt-empty"); return; }' +
   'var d=new Date(el.value);' +
   'disp.textContent = d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}) + " at " + d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});' +
   'disp.classList.remove("dt-empty");' +
