@@ -310,6 +310,15 @@ const HTML_PAGE =
      text further via a default opacity, so that is reset to fully solid
      here too. */
   'input::placeholder{color:var(--muted);opacity:1;}' +
+  /* The domain select always carries a real, non-empty value, and an
+     empty native datetime-local shows its own "dd/mm/yyyy" segments
+     rather than a true placeholder - neither picks up the rule above,
+     so without this they render in the default dark text colour and
+     visibly clash with every other hint/placeholder in this section,
+     which are all --muted. Pinning both here keeps the whole "More
+     options" panel reading as one consistent, gentle gray until there
+     is a real url/tags/code value to show in full-strength text. */
+  '#domain,#expiresAt{color:var(--muted);}' +
   '.dt-wrap{position:relative;}' +
   /* iOS Safari renders an empty datetime-local input as a totally blank
      box (no placeholder-like text, no visible hint it is even a date
@@ -374,11 +383,11 @@ const HTML_PAGE =
   '.action-menu{display:inline-block;position:relative;}' +
   '.action-menu summary{list-style:none;cursor:pointer;background:var(--accent);color:white;border-radius:10px;padding:5px 9px 5px 11px;font-size:0.75rem;white-space:nowrap;display:flex;align-items:center;gap:5px;user-select:none;}' +
   '.action-menu summary::-webkit-details-marker{display:none;}' +
-  '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;transition:transform .12s ease-out;}' +
+  '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;}' +
   '.action-menu[open] summary::after{transform:rotate(180deg);}' +
   '.action-menu[open]{z-index:50;}' +
   '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.16);padding:6px;min-width:140px;}' +
-  '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;transition:opacity .14s ease-out,transform .14s ease-out;}' +
+  '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;}' +
   '.action-menu-items button{display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 2px 0;padding:8px 10px;font-size:0.8rem;border-radius:8px;background:transparent;border:none;color:var(--text);font-weight:500;}' +
   '.action-menu-items button svg{flex:none;opacity:0.7;}' +
   '.action-menu-items button:last-child{margin-bottom:0;}' +
@@ -587,12 +596,12 @@ const HTML_PAGE =
 'document.addEventListener("toggle",function(e){' +
 'if(e.target.tagName!=="DETAILS"||!e.target.classList.contains("action-menu"))return;' +
 'var d=e.target,m=d.querySelector(".action-menu-items");' +
-'if(!d.open){m.classList.remove("action-menu-fixed");m.style.opacity="";m.style.transform="";m.style.left="";m.style.top="";m.style.right="";return;}' +
+'if(!d.open){m.classList.remove("action-menu-fixed");m.style.left="";m.style.top="";m.style.right="";return;}' +
 /* only one actions menu open at a time - opening this one closes every
    other row's menu first (closing them fires their own toggle handler,
    which resets their inline positioning styles above). */
 'document.querySelectorAll(".action-menu[open]").forEach(function(other){if(other!==d)other.removeAttribute("open");});' +
-'m.classList.add("action-menu-fixed");positionActionMenu(d);requestAnimationFrame(function(){m.style.opacity="1";m.style.transform="translateY(0) scale(1)";});' +
+'m.classList.add("action-menu-fixed");positionActionMenu(d);' +
 '},true);' +
 'window.addEventListener("resize",function(){document.querySelectorAll(".action-menu[open]").forEach(positionActionMenu);});' +
 'window.addEventListener("scroll",function(){document.querySelectorAll(".action-menu[open]").forEach(positionActionMenu);},true);document.addEventListener("click",function(e){if(e.target.closest(".action-menu"))return;document.querySelectorAll(".action-menu[open]").forEach(function(d){d.removeAttribute("open");});});' +
