@@ -812,7 +812,7 @@ const server = http.createServer(async (req, res) => {
             'Not found',
             'Nothing lives at this address.',
             null,
-            null,
+            'locked',
             null,
             true
           ),
@@ -1240,7 +1240,7 @@ const server = http.createServer(async (req, res) => {
             'Link not found',
             'This short link doesn\u2019t exist or was deleted.',
             null,
-            null,
+            'locked',
             null,
             true
           ),
@@ -1255,7 +1255,7 @@ const server = http.createServer(async (req, res) => {
             'This link has expired',
             'The owner set an expiration date that has passed.',
             null,
-            null,
+            'locked',
             null,
             true
           ),
@@ -1288,7 +1288,7 @@ const server = http.createServer(async (req, res) => {
         'Not found',
         'Nothing lives at this address.',
         null,
-        null,
+        'locked',
         null,
         true
       ),
