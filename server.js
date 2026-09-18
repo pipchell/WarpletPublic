@@ -309,7 +309,12 @@ const HTML_PAGE =
      placeholder would sit. */
   '.dt-wrap{position:relative;}' +
   'input[type="datetime-local"]{padding-top:8px;padding-bottom:8px;}' +
-  '.dt-hint{position:absolute;left:11px;top:0;bottom:0;display:flex;align-items:center;font-size:0.95rem;color:var(--muted);pointer-events:none;}' +
+  /* Hidden by default: desktop and Android browsers already render their
+     own "mm/dd/yyyy --:-- --" placeholder-style segments inside an empty
+     datetime-local field, so this hint would just overlap and garble that
+     - it's only switched on (via JS, isIOS check) for iOS Safari, the one
+     platform that renders the field completely blank instead. */
+  '.dt-hint{position:absolute;left:11px;top:0;bottom:0;display:none;align-items:center;font-size:0.95rem;color:var(--muted);pointer-events:none;}' +
   'button{cursor:pointer;background:var(--accent);color:white;border:none;font-weight:600;}' +
   'button:hover{filter:brightness(1.05);}' +
   'a{color:var(--accent);}' +
@@ -620,12 +625,17 @@ const HTML_PAGE =
   '}else{ legacyCopy(); }' +
   '}' +
   'function flash(text){ var m = document.getElementById("msg"); m.textContent = text; setTimeout(function(){ if(m.textContent===text) m.textContent=""; }, 2500); }' +
-  /* Setting .value from JS (editLink/clearForm) does not fire an "input"
-     event, so the hint has to be synced manually wherever the field's
-     value is set programmatically, not just via the input's own oninput. */
+  /* Only iOS Safari renders an empty datetime-local field completely
+     blank; desktop and Android already show their own greyed-out
+     "mm/dd/yyyy --:-- --" segments, so showing this hint there too just
+     overlaps and garbles that native rendering. Restrict it to iOS.
+     Setting .value from JS (editLink/clearForm) does not fire an "input"
+     event either, so the hint has to be synced manually wherever the
+     field's value is set programmatically, not just via oninput. */
+  'var isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);' +
   'function syncExpiresHint(){' +
   'var el=document.getElementById("expiresAt"), hint=document.getElementById("expiresAtHint");' +
-  'if(el && hint) hint.style.display = el.value ? "none" : "flex";' +
+  'if(el && hint) hint.style.display = (isIOS && !el.value) ? "flex" : "none";' +
   '}' +
 
   'function saveLink(){' +
@@ -755,6 +765,7 @@ const HTML_PAGE =
   '}' +
 
   'if(token) showApp();' +
+  'syncExpiresHint();' +
   '</script>' +
   '</body></html>';
 
