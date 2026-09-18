@@ -303,25 +303,35 @@ const HTML_PAGE =
   'input,select,button,textarea{font-size:0.95rem;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);min-width:0;}' +
   'input,select,textarea{width:100%;}' +
   '#domain,#expiresAt{color:var(--muted);}' +
-  /* iOS gives datetime-local inputs their own larger intrinsic height that
-     ignores most author padding - this at least tightens it as much as
-     the platform allows, and lines the hint text up with where a real
-     placeholder would sit. */
   '.dt-wrap{position:relative;}' +
-  'input[type="datetime-local"]{padding-top:8px;padding-bottom:8px;}' +
-  /* Hidden by default: desktop and Android browsers already render their
-     own "mm/dd/yyyy --:-- --" placeholder-style segments inside an empty
-     datetime-local field, so this hint would just overlap and garble that
-     - it's only switched on (via JS, isIOS check) for iOS Safari, the one
-     platform that renders the field completely blank instead. */
-  '.dt-hint{position:absolute;left:11px;top:0;bottom:0;display:none;align-items:center;font-size:0.95rem;color:var(--muted);pointer-events:none;}' +
+  /* iOS enforces its own larger intrinsic height for a datetime-local
+     control's native chrome and mostly ignores author CSS on it directly
+     - so instead of fighting that, on iOS the real input is made fully
+     invisible and stretched to fill this wrapper (clipped by
+     overflow:hidden, so its oversized native rendering never affects
+     layout), while a plain styled div underneath shows the value using
+     exactly the same sizing as every other field. Taps still land on the
+     real input (it is on top, just invisible) and open the native
+     picker normally. Desktop/Android are untouched by any of this - the
+     "ios-datetime" class below is only ever added via JS on iOS, where
+     the native rendering is otherwise blank and oddly tall to begin with. */
+  '.dt-wrap.ios-datetime{overflow:hidden;border-radius:8px;}' +
+  '.dt-wrap.ios-datetime .dt-real{position:absolute;inset:0;width:100%;height:100%;opacity:0;padding:0;margin:0;border:none;}' +
+  '.dt-display{display:none;}' +
+  '.dt-wrap.ios-datetime .dt-display{display:flex;align-items:center;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:0.95rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}' +
+  '.dt-wrap.ios-datetime .dt-display.dt-empty{color:var(--muted);}' +
   'button{cursor:pointer;background:var(--accent);color:white;border:none;font-weight:600;}' +
   'button:hover{filter:brightness(1.05);}' +
   'a{color:var(--accent);}' +
   'input[type="datetime-local"],select{color:var(--muted);}' +
   'button.secondary{background:var(--card2);color:var(--text);border:1px solid var(--border);font-weight:500;}' +
   'button.danger{background:#d33;}' +
-  '.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}' +
+  /* align-items:start (not the grid default of "stretch") - otherwise the
+     plain "tags" input gets stretched to match its row-mate's height
+     whenever that row-mate is taller (e.g. the Expires field, which has
+     its own label sitting above it), making the tags box look oddly
+     thick instead of just leaving the shorter cell its natural height. */
+  '.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}' +
   '.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px;}' +
   '.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}' +
   '.stat .n{font-size:1.5rem;font-weight:700;color:var(--accent);}' +
@@ -397,16 +407,15 @@ const HTML_PAGE =
   '<input type="text" id="tags" placeholder="tags, comma-separated">' +
   /* datetime-local inputs can't show placeholder text in any browser, and
      on iOS Safari an empty one renders as a plain blank box with no hint
-     text or icon at all (and a taller intrinsic height than other inputs,
-     which iOS enforces regardless of our CSS) - easy to mistake for
-     missing/broken. The label above already identifies it; this overlay
-     span adds a "tap to set a date" hint on top of the blank input itself
-     (pointer-events:none so taps pass straight through to the real
-     control), toggled off once a value is actually set. */
+     text or icon at all - easy to mistake for missing/broken. On iOS
+     (only - see the CSS above) #expiresAt is made invisible and a plain
+     styled div (#expiresAtDisplay) shows a hint or the chosen value
+     instead, sized like every other field; a tap still lands on the real
+     (invisible) input and opens the native picker as normal. */
   '<div><label for="expiresAt" style="display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Expires (optional)</label>' +
-  '<div class="dt-wrap">' +
-  '<input type="datetime-local" id="expiresAt" oninput="syncExpiresHint()">' +
-  '<span id="expiresAtHint" class="dt-hint">Tap to set a date</span>' +
+  '<div class="dt-wrap" id="expiresAtWrap">' +
+  '<input type="datetime-local" id="expiresAt" class="dt-real" oninput="syncExpiresDisplay()">' +
+  '<div id="expiresAtDisplay" class="dt-display dt-empty">Tap to set a date</div>' +
   '</div></div>' +
   '</div>' +
   domainSelectHtml +
@@ -625,17 +634,22 @@ const HTML_PAGE =
   '}else{ legacyCopy(); }' +
   '}' +
   'function flash(text){ var m = document.getElementById("msg"); m.textContent = text; setTimeout(function(){ if(m.textContent===text) m.textContent=""; }, 2500); }' +
-  /* Only iOS Safari renders an empty datetime-local field completely
-     blank; desktop and Android already show their own greyed-out
-     "mm/dd/yyyy --:-- --" segments, so showing this hint there too just
-     overlaps and garbles that native rendering. Restrict it to iOS.
-     Setting .value from JS (editLink/clearForm) does not fire an "input"
-     event either, so the hint has to be synced manually wherever the
-     field's value is set programmatically, not just via oninput. */
+  /* Only iOS Safari renders datetime-local badly (blank when empty, and
+     an oddly tall native control) - desktop/Android already look fine
+     with the plain input, so all of this is gated behind isIOS and never
+     touches those. Setting .value from JS (editLink/clearForm) does not
+     fire an "input" event either, so the display has to be synced
+     manually wherever the field's value is set programmatically, not
+     just via the input's own oninput. */
   'var isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);' +
-  'function syncExpiresHint(){' +
-  'var el=document.getElementById("expiresAt"), hint=document.getElementById("expiresAtHint");' +
-  'if(el && hint) hint.style.display = (isIOS && !el.value) ? "flex" : "none";' +
+  'if(isIOS){ var eaw=document.getElementById("expiresAtWrap"); if(eaw) eaw.classList.add("ios-datetime"); }' +
+  'function syncExpiresDisplay(){' +
+  'var el=document.getElementById("expiresAt"), disp=document.getElementById("expiresAtDisplay");' +
+  'if(!el || !disp) return;' +
+  'if(!el.value){ disp.textContent="Tap to set a date"; disp.classList.add("dt-empty"); return; }' +
+  'var d=new Date(el.value);' +
+  'disp.textContent = d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}) + " at " + d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});' +
+  'disp.classList.remove("dt-empty");' +
   '}' +
 
   'function saveLink(){' +
@@ -671,7 +685,7 @@ const HTML_PAGE =
   'document.getElementById("code").value=l.code;' +
   'document.getElementById("tags").value=(l.tags||[]).join(", ");' +
   'document.getElementById("expiresAt").value=l.expiresAt ? new Date(l.expiresAt-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : "";' +
-  'syncExpiresHint();' +
+  'syncExpiresDisplay();' +
   'document.getElementById("password").value="";' +
   'document.getElementById("password").placeholder = l.hasPassword ? "new password (leave blank to keep current)" : "password (optional)";' +
   'document.getElementById("removePassword").checked=false;' +
@@ -690,7 +704,7 @@ const HTML_PAGE =
   'document.getElementById("code").value="";' +
   'document.getElementById("tags").value="";' +
   'document.getElementById("expiresAt").value="";' +
-  'syncExpiresHint();' +
+  'syncExpiresDisplay();' +
   'document.getElementById("password").value="";' +
   'document.getElementById("password").placeholder="password (optional)";' +
   'document.getElementById("removePassword").checked=false;' +
@@ -765,7 +779,7 @@ const HTML_PAGE =
   '}' +
 
   'if(token) showApp();' +
-  'syncExpiresHint();' +
+  'syncExpiresDisplay();' +
   '</script>' +
   '</body></html>';
 
