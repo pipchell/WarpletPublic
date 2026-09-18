@@ -379,6 +379,9 @@ const HTML_PAGE =
   '</div>' +
   domainSelectHtml +
   '<input type="text" id="password" placeholder="password (optional)" style="margin-top:8px;">' +
+  '<label id="removePasswordRow" style="display:none;align-items:center;gap:6px;margin-top:8px;font-size:0.85rem;color:var(--muted);">' +
+  '<input type="checkbox" id="removePassword" style="width:auto;">Remove password protection' +
+  '</label>' +
   '</details>' +
   '<div class="row" style="margin-top:12px;">' +
   '<button id="submitLink" onclick="saveLink()">Shorten it</button>' +
@@ -593,6 +596,7 @@ const HTML_PAGE =
   'var tags = document.getElementById("tags").value.split(",").map(function(s){return s.trim();}).filter(Boolean);' +
   'var expiresAtLocal = document.getElementById("expiresAt").value;' +
   'var password = document.getElementById("password").value;' +
+  'var removePassword = document.getElementById("removePassword").checked;' +
   'var domainEl = document.getElementById("domain");' +
   'var domain = domainEl ? domainEl.value : null;' +
   'if(!url){ flash("Enter a URL first."); return; }' +
@@ -600,7 +604,7 @@ const HTML_PAGE =
   'var isEdit = Boolean(editingCode);' +
   'var endpoint = isEdit ? "/api/links/" + encodeURIComponent(editingCode) : "/api/links";' +
   'var method = isEdit ? "PUT" : "POST";' +
-  'var payload = {url:url, code:code, tags:tags, expiresAt:expiresAt, password:password, domain:domain, token:token};' +
+  'var payload = {url:url, code:code, tags:tags, expiresAt:expiresAt, password:password, removePassword:removePassword, domain:domain, token:token};' +
   'fetch(endpoint,{method:method,headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})' +
   '.then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})' +
   '.then(function(res){' +
@@ -620,6 +624,9 @@ const HTML_PAGE =
   'document.getElementById("tags").value=(l.tags||[]).join(", ");' +
   'document.getElementById("expiresAt").value=l.expiresAt ? new Date(l.expiresAt-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : "";' +
   'document.getElementById("password").value="";' +
+  'document.getElementById("password").placeholder = l.hasPassword ? "new password (leave blank to keep current)" : "password (optional)";' +
+  'document.getElementById("removePassword").checked=false;' +
+  'document.getElementById("removePasswordRow").style.display = l.hasPassword ? "flex" : "none";' +
   'if(document.getElementById("domain")) document.getElementById("domain").value=l.domain || document.getElementById("domain").value;' +
   'document.getElementById("submitLink").textContent="Save changes";' +
   'document.getElementById("cancelEdit").style.display="inline-block";' +
@@ -635,6 +642,9 @@ const HTML_PAGE =
   'document.getElementById("tags").value="";' +
   'document.getElementById("expiresAt").value="";' +
   'document.getElementById("password").value="";' +
+  'document.getElementById("password").placeholder="password (optional)";' +
+  'document.getElementById("removePassword").checked=false;' +
+  'document.getElementById("removePasswordRow").style.display="none";' +
   'document.getElementById("submitLink").textContent="Shorten it";' +
   'document.getElementById("cancelEdit").style.display="none";' +
   '}' +
@@ -1057,9 +1067,16 @@ const server = http.createServer(async (req, res) => {
       const expiresAt =
         Number.isFinite(body.expiresAt) ? body.expiresAt : null;
 
+      // Leave the password untouched by default (editing a link's URL/tags
+      // shouldn't silently drop its password); a non-empty body.password
+      // sets a new one, and an explicit removePassword flag clears it -
+      // that takes priority since it's an unambiguous user action, unlike
+      // an empty password field, which just means "didn't touch this".
       let password = existing.password || null;
 
-      if (body.password && String(body.password).trim()) {
+      if (body.removePassword) {
+        password = null;
+      } else if (body.password && String(body.password).trim()) {
         password = sha256Hex(String(body.password).trim());
       }
 
