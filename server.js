@@ -797,7 +797,14 @@ const server = http.createServer(async (req, res) => {
       if (!isDashboardRequestAllowed(req)) {
         return sendHtml(
           res,
-          minimalPage('Not found', 'Nothing lives at this address.'),
+          minimalPage(
+            'Not found',
+            'Nothing lives at this address.',
+            null,
+            null,
+            null,
+            true
+          ),
           404
         );
       }
@@ -1261,7 +1268,11 @@ const server = http.createServer(async (req, res) => {
       res,
       minimalPage(
         'Not found',
-        'Nothing lives at this address.'
+        'Nothing lives at this address.',
+        null,
+        null,
+        null,
+        true
       ),
       404
     );
