@@ -191,7 +191,7 @@ function recordHit(entry, req) {
 // Branded minimal pages
 // ------------------------------------------------------------
 
-function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc) {
+function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc, hideBrandText) {
   const variantClass = cardVariant ? ' ' + cardVariant : '';
   const logo = logoSrc || BRAND.wordmark;
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
@@ -201,7 +201,10 @@ function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc) {
     '<style>' +
     'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fbfbfb;color:#3d3d3d;padding:20px;}' +
     '.card{max-width:360px;width:100%;padding:32px 28px;border-radius:10px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08);border:1px solid #e9e9e9;text-align:center;}' +
-    '.brand-logo{width:48px;height:48px;object-fit:contain;display:block;margin:0 auto 14px;}' +
+    /* the wordmark image is solid white, so it needs a colored plate behind
+       it to stay visible on the plain white card (not just the purple
+       "locked" variant below) */
+    '.brand-logo{height:30px;width:auto;max-width:80%;object-fit:contain;display:inline-block;margin:0 auto 16px;padding:10px 18px;background:' + BRAND.accent + ';border-radius:10px;}' +
     'h1{font-size:1.3rem;margin:0 0 8px;}' +
     'p{color:#828282;margin:0 0 20px;font-size:0.95rem;}' +
     'input{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#3d3d3d;margin-bottom:10px;font-size:1rem;}' +
@@ -216,10 +219,12 @@ function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc) {
     '.card.locked input::placeholder{color:rgba(255,255,255,.65);}' +
     '.card.locked button{background:#fff;color:' + BRAND.accent + ';}' +
     '.card.locked #err{color:#ffd6d6;}' +
-    '.card.locked .brand-logo{filter:brightness(0) invert(1);}' +
+    /* on the purple card the logo's own plate is the same color as the
+       card, so it just reads as the plain white wordmark sitting on it */
+    '.card.locked .brand-logo{background:transparent;padding:0;filter:brightness(0) invert(1);}' +
     '</style></head><body><div class="card' + variantClass + '">' +
     '<img class="brand-logo" src="' + logo + '" alt="' + BRAND.name + '">' +
-    '<div class="brand">' + BRAND.name + '</div>' +
+    (hideBrandText ? '' : '<div class="brand">' + BRAND.name + '</div>') +
     '<h1>' + heading + '</h1><p>' + subtext + '</p>' +
     (bodyExtra || '') +
     '</div></body></html>';
@@ -227,11 +232,14 @@ function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc) {
 
 function passwordPage(code) {
   const extra =
-    '<input type="password" id="pw" placeholder="Password">' +
+    /* autocomplete="new-password" (plus a name/id that isn't "password" or
+       "pw") stops browsers offering the saved ACCESS_TOKEN as an autofill
+       suggestion here - this field is a per-link secret, not a login. */
+    '<input type="password" id="linkpw" name="link-password" placeholder="Password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore>' +
     '<button onclick="go()">Continue</button><div id="err"></div>' +
     '<script>' +
     'function go(){' +
-    'var pw=document.getElementById("pw").value;' +
+    'var pw=document.getElementById("linkpw").value;' +
     'fetch("/api/verify/' + code + '",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw})})' +
     '.then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})' +
     '.then(function(res){' +
@@ -239,7 +247,7 @@ function passwordPage(code) {
     'else{document.getElementById("err").textContent=res.d.error||"Incorrect password";}' +
     '});' +
     '}' +
-    'document.getElementById("pw").addEventListener("keydown",function(e){if(e.key==="Enter")go();});' +
+    'document.getElementById("linkpw").addEventListener("keydown",function(e){if(e.key==="Enter")go();});' +
     '</script>';
 
   return minimalPage(
@@ -247,7 +255,8 @@ function passwordPage(code) {
     'Enter the password to continue.',
     extra,
     'locked',
-    '/favicon.png'
+    null,
+    true
   );
 }
 
@@ -759,9 +768,15 @@ const server = http.createServer(async (req, res) => {
           new URL('./' + filename, import.meta.url)
         );
 
+        // Short, revalidatable cache - NOT "immutable" with a 1-year
+        // max-age. This repo is meant to be rebranded by swapping these
+        // files in place (see README), and an immutable year-long cache
+        // means a browser that ever fetched the old file (including a
+        // broken/placeholder one) would keep it, ignoring every future
+        // fix, until that year is up.
         res.writeHead(200, {
           'Content-Type': 'image/png',
-          'Cache-Control': 'public, max-age=31536000, immutable'
+          'Cache-Control': 'public, max-age=300, must-revalidate'
         });
 
         if (req.method === 'HEAD') return res.end();
@@ -1202,7 +1217,11 @@ const server = http.createServer(async (req, res) => {
           res,
           minimalPage(
             'This link has expired',
-            'The owner set an expiration date that has passed.'
+            'The owner set an expiration date that has passed.',
+            null,
+            null,
+            null,
+            true
           ),
           410
         );
