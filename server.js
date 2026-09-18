@@ -537,7 +537,7 @@ const HTML_PAGE =
   'if(activeDomain) list = list.filter(function(l){ return l.domain === activeDomain; });' +
   'if(list.length === 0){' +
   'var emptyTr = document.createElement("tr");' +
-  'var emptyMsg = (activeTag || activeDomain) ? "No links match this filter." : "No links yet \\u2014 create one above.";' +
+  'var emptyMsg = (activeTag || activeDomain) ? "No links match this filter." : "No links";' +
   'emptyTr.innerHTML = "<td colspan=\\"5\\" style=\\"text-align:center;color:var(--muted);padding:28px 10px;\\">" + emptyMsg + "</td>";' +
   'rows.appendChild(emptyTr);' +
   'return;' +
@@ -1213,7 +1213,11 @@ const server = http.createServer(async (req, res) => {
           res,
           minimalPage(
             'Link not found',
-            'This short link doesn\u2019t exist or was deleted.'
+            'This short link doesn\u2019t exist or was deleted.',
+            null,
+            null,
+            null,
+            true
           ),
           404
         );
