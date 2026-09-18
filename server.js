@@ -197,7 +197,7 @@ function minimalPage(heading, subtext, bodyExtra, cardVariant, logoSrc, hideBran
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<title>' + BRAND.name + '</title>' +
-    '<link rel="icon" type="image/png" href="/favicon.png?v=7">' +
+    '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=8">' +
     '<style>' +
     'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fbfbfb;color:#3d3d3d;padding:20px;}' +
     '.card{max-width:360px;width:100%;padding:32px 28px;border-radius:10px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08);border:1px solid #e9e9e9;text-align:center;}' +
@@ -281,7 +281,7 @@ const HTML_PAGE =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
   '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
   '<title>' + BRAND.name + '</title>' +
-  '<link rel="icon" type="image/png" href="/favicon.png?v=7">' +
+  '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=8">' +
   '<style>' +
   ':root{--accent:' + BRAND.accent + ';--bg:#fbfbfb;--card:#fff;--card2:#f7f7f7;--text:#3d3d3d;--muted:#828282;--border:#e4e4e4;}' +
   '*{box-sizing:border-box;}' +
@@ -317,6 +317,7 @@ const HTML_PAGE =
   '.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}' +
   'table{width:100%;border-collapse:collapse;font-size:0.85rem;min-width:650px;}' +
   'td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border);vertical-align:top;}' +
+  'tbody tr:last-child td{border-bottom:none;}' +
   'th{color:var(--muted);font-weight:600;font-size:0.75rem;text-transform:uppercase;}' +
   '.code{font-family:ui-monospace,monospace;color:var(--accent);}' +
   '.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.7rem;margin-right:4px;}' +
@@ -765,20 +766,20 @@ const server = http.createServer(async (req, res) => {
       new URL(req.url, 'http://localhost');
 
     // Serve the brand images referenced by BRAND.logo / BRAND.wordmark,
-    // plus the favicon (always favicon.png regardless of what those two
-    // point at). All three are plain files in the project root — rename
-    // BRAND.logo/wordmark to serve different files, or replace the files
-    // in place to change the images without touching this route.
+    // plus the favicon - the real favicon.ico in the project root (a
+    // proper multi-resolution icon, not derived from logo/wordmark).
+    // All are plain files here - rename BRAND.logo/wordmark to serve
+    // different files, or replace the files in place to change the
+    // images without touching this route.
     const STATIC_IMAGE_PATHS = new Set(
       [BRAND.logo, BRAND.wordmark, '/favicon.ico', '/favicon.png'].filter(Boolean)
     );
 
     if (STATIC_IMAGE_PATHS.has(pathname) &&
         (req.method === 'GET' || req.method === 'HEAD')) {
-      const filename =
-        (pathname === '/favicon.ico' || pathname === '/favicon.png')
-          ? 'favicon.png'
-          : pathname.replace(/^\//, '');
+      const isFavicon = pathname === '/favicon.ico' || pathname === '/favicon.png';
+      const filename = isFavicon ? 'favicon.ico' : pathname.replace(/^\//, '');
+      const contentType = isFavicon ? 'image/x-icon' : 'image/png';
 
       try {
         const image = await readFile(
@@ -792,7 +793,7 @@ const server = http.createServer(async (req, res) => {
         // broken/placeholder one) would keep it, ignoring every future
         // fix, until that year is up.
         res.writeHead(200, {
-          'Content-Type': 'image/png',
+          'Content-Type': contentType,
           'Cache-Control': 'public, max-age=300, must-revalidate'
         });
 

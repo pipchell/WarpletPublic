@@ -124,7 +124,7 @@ const BRAND = {
 };
 ```
 
-`name` shows in the header, tab title, and every branded page. `accent` is any CSS hex color, used throughout the dashboard. `logo` is the small square icon on the login/password pages; `wordmark` is the wider logo shown in the dashboard header — both are plain image files in the project root, so replace the file to change the image, or point the field at a different filename. The browser tab favicon is separate: it's always served from `favicon.png` in the project root, regardless of what `logo`/`wordmark` point to — swap that file to change it. Restart the service after editing — there's no build step. The whole dashboard's HTML/CSS/JS lives as template strings just below this object, so anything beyond these fields is a normal JavaScript edit away.
+`name` shows in the header, tab title, and every branded page. `accent` is any CSS hex color, used throughout the dashboard. `logo` is the small square icon on the login/password pages; `wordmark` is the wider logo shown in the dashboard header — both are plain image files in the project root, so replace the file to change the image, or point the field at a different filename. The browser tab favicon is separate: it's always served from `favicon.ico` in the project root (a real multi-resolution icon, not derived from `logo`/`wordmark`), regardless of what those two point to — swap that file to change it. Restart the service after editing — there's no build step. The whole dashboard's HTML/CSS/JS lives as template strings just below this object, so anything beyond these fields is a normal JavaScript edit away.
 
 ## Multiple domains
 
