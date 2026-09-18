@@ -326,17 +326,19 @@ const HTML_PAGE =
   '.pill.locked{background:#fff4d8;color:#946d00;}' +
   '.actions button{padding:5px 8px;font-size:0.75rem;margin-right:4px;margin-bottom:4px;}' +
   '.action-menu{display:inline-block;position:relative;}' +
-  ' .action-menu summary{list-style:none;cursor:pointer;background:var(--accent);color:white;border-radius:10px;padding:5px 9px;font-size:0.75rem;white-space:nowrap;}' +
+  '.action-menu summary{list-style:none;cursor:pointer;background:var(--accent);color:white;border-radius:10px;padding:5px 9px 5px 11px;font-size:0.75rem;white-space:nowrap;display:flex;align-items:center;gap:5px;user-select:none;}' +
   '.action-menu summary::-webkit-details-marker{display:none;}' +
-  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.12);padding:4px;min-width:90px;}' +
-  '.action-menu-items button{display:block;width:100%;box-sizing:border-box;text-align:left;margin:0 0 4px 0;padding:6px 8px;font-size:0.75rem;border-radius:10px;}.action-menu-items button:last-child{margin-bottom:0;}' +
-
-  '.action-menu{position:relative;display:inline-block;}' +
-  ' .action-menu summary{list-style:none;cursor:pointer;background:var(--accent);color:white;border-radius:10px;padding:5px 9px;font-size:0.75rem;}' +
-  '.action-menu summary::-webkit-details-marker{display:none;}' +
-  '.action-menu button{display:block;width:100%;text-align:left;margin:0 0 4px 0;border-radius:10px;white-space:nowrap;}' +
-  ' .action-menu[open]{z-index:50;} .action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;opacity:0;transition:opacity .08s ease-out;} ' +
-  '.action-menu[open] summary{border-radius:10px;}' +
+  '.action-menu summary::after{content:"\\25BE";font-size:0.65rem;transition:transform .12s ease-out;}' +
+  '.action-menu[open] summary::after{transform:rotate(180deg);}' +
+  '.action-menu[open] summary{border-radius:10px 10px 0 0;}' +
+  '.action-menu[open]{z-index:50;}' +
+  '.action-menu-items{position:absolute;right:0;top:100%;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.14);padding:4px;min-width:110px;}' +
+  '.action-menu-items.action-menu-fixed{position:fixed !important;right:auto !important;z-index:9999 !important;opacity:0;transform:translateY(-4px);transition:opacity .1s ease-out,transform .1s ease-out;}' +
+  '.action-menu-items button{display:block;width:100%;box-sizing:border-box;text-align:left;margin:0 0 2px 0;padding:7px 9px;font-size:0.78rem;border-radius:7px;background:transparent;border:none;color:var(--text);font-weight:500;}' +
+  '.action-menu-items button:last-child{margin-bottom:0;}' +
+  '.action-menu-items button:hover{background:var(--card2);}' +
+  '.action-menu-items button.danger{color:#d33;margin-top:5px;padding-top:9px;border-top:1px solid var(--border);border-radius:0 0 7px 7px;}' +
+  '.action-menu-items button.danger:hover{background:#fdeaea;}' +
 
   '#msg{font-size:0.85rem;color:var(--muted);overflow-wrap:anywhere;}#msg:not(:empty){margin-top:8px;}' +
   '.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:10;}' +
@@ -376,7 +378,10 @@ const HTML_PAGE =
   '<details class="advanced"><summary>' + moreOptionsLabel + '</summary>' +
   '<div class="grid" style="margin-top:8px;">' +
   '<input type="text" id="tags" placeholder="tags, comma-separated">' +
-  '<input type="datetime-local" id="expiresAt">' +
+  /* datetime-local inputs can't show placeholder text in any browser, so
+     without a real label this field just looks like an empty box - easy
+     to miss entirely on a narrow mobile layout. */
+  '<div><label for="expiresAt" style="display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Expires (optional)</label><input type="datetime-local" id="expiresAt"></div>' +
   '</div>' +
   domainSelectHtml +
   '<input type="text" id="password" placeholder="password (optional)" style="margin-top:8px;">' +
@@ -528,8 +533,12 @@ const HTML_PAGE =
 'document.addEventListener("toggle",function(e){' +
 'if(e.target.tagName!=="DETAILS"||!e.target.classList.contains("action-menu"))return;' +
 'var d=e.target,m=d.querySelector(".action-menu-items");' +
-'if(!d.open){m.classList.remove("action-menu-fixed");m.style.opacity="";m.style.left="";m.style.top="";m.style.right="";return;}' +
-'m.classList.add("action-menu-fixed");positionActionMenu(d);requestAnimationFrame(function(){m.style.opacity="1";});' +
+'if(!d.open){m.classList.remove("action-menu-fixed");m.style.opacity="";m.style.transform="";m.style.left="";m.style.top="";m.style.right="";return;}' +
+/* only one actions menu open at a time - opening this one closes every
+   other row's menu first (closing them fires their own toggle handler,
+   which resets their inline positioning styles above). */
+'document.querySelectorAll(".action-menu[open]").forEach(function(other){if(other!==d)other.removeAttribute("open");});' +
+'m.classList.add("action-menu-fixed");positionActionMenu(d);requestAnimationFrame(function(){m.style.opacity="1";m.style.transform="translateY(0)";});' +
 '},true);' +
 'window.addEventListener("resize",function(){document.querySelectorAll(".action-menu[open]").forEach(positionActionMenu);});' +
 'window.addEventListener("scroll",function(){document.querySelectorAll(".action-menu[open]").forEach(positionActionMenu);},true);document.addEventListener("click",function(e){if(e.target.closest(".action-menu"))return;document.querySelectorAll(".action-menu[open]").forEach(function(d){d.removeAttribute("open");});});' +
